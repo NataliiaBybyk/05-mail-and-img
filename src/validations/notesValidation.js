@@ -5,7 +5,7 @@ import { isValidObjectId } from "mongoose";
 //ВАЛІДАЦІЯ маршруту GET /notes потрібно валідувати параметри рядка запиту:
 //page - ціле число, мінімальне значення 1, за замовчуванням 1.
 //perPage - ціле число, мінімальне значення 5, максимальне 20, за замовчуванням 10.
-//tag - рядок, одне із можливих значень із файла src/contacts/tags.js, необов’язкове поле
+//tag - рядок, одне із можливих значень із файла src/constants/tags.js, необов’язкове поле
 //search - рядок, можливо передавати порожній рядок
 export const getAllNotesSchema={
   [Segments.QUERY]:Joi.object({
@@ -33,7 +33,7 @@ export const noteIdSchema={
 //ВАЛІДАЦІЯ маршруту POST /notes: потрібно валідувати тіло запиту як об’єкт із наступними властивостями:
 //title - рядок, мінімум 1 символ, обов’язкове поле
 //content - рядок, може бути порожнім рядком, необов’язкове поле
-//tag - одне зі значень із файла src/contacts/tags.js, необов’язкове поле
+//tag - одне зі значень із файла src/constants/tags.js, необов’язкове поле
 export const createNoteSchema={
   [Segments.BODY]:Joi.object({
 title: Joi.string().min(1).required(),
