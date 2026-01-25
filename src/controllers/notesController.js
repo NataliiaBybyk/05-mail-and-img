@@ -1,11 +1,43 @@
 import {Note} from '../models/note.js';
 import createHttpError from 'http-errors';
 
+
 //Опис контролера getAllNotes:
 export const getAllNotes = async (req, res)=>{
-  const notes =await Note.find();
+  //Отримаємо параметри запиту
+  const {page=1, perPage=10, tag, search}=req.query;
+
+  const skip=(page-1)*perPage;
+
+  //Створюємо базовий запит до колекції
+  const notesQuery = Note.find();
+
+  //Текстовий пошук по name (працює лише якщо створено текстовий індекс)
+  if(search){
+    notesQuery.where({$text: {$search: search}});
+  }
+
+  //Фільтр за tag
+  if(tag){
+    notesQuery.where('tag').equals(tag);
+  }
+
+  //Виконуємо одразу два запити паралельно
+  const [totalNotes, notes]=await Promise.all([
+    notesQuery.clone().countDocuments(),
+    notesQuery.skip(skip).limit(perPage),
+  ]);
+
+  //Обчислюємо загальну кількість сторінок
+  const totalPages=Math.ceil(totalNotes / perPage);
+
   //У разі вдалої обробки запиту відповідь сервера має бути зі статусом 200 та містити масив нотаток:
-  res.status(200).json(notes);
+  res.status(200).json({
+    page,
+    perPage,
+    totalNotes,
+    totalPages,
+    notes});
 };
 
 

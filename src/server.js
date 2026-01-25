@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
+//щоб помилки правильно відображалися при валідації, потрібно підключити спеціальний middleware errors() від celebrate.
+import { errors } from 'celebrate';
 import helmet from 'helmet';
 import { loggerPino } from './middleware/logger.js';
 import {connectMongoDB} from './db/connectMongoDB.js';
@@ -29,8 +31,14 @@ app.use(loggerPino);
 app.use(notesRoutes);
 
 
-//Middleware notFoundHandler(додана після всіх маршрутів) для обробки всіх запитів, що не відповідають жодному наявному маршруту:повертає статус 400:
+//Middleware 404 notFoundHandler(додана після всіх маршрутів) для обробки всіх запитів, що не відповідають жодному наявному маршруту:повертає статус 400:
 app.use(notFoundHandler);
+
+// обробка помилок від celebrate (валідація)
+//Усі middleware виконуються у порядку, в якому вони оголошені.
+//Тому errors() має бути підключений до глобального errorHandler.
+//Це потрібно для того, щоб спочатку відловлювались помилки валідації celebrate, а вже потім — усі інші.
+app.use(errors());
 
 //Middleware errorHandler.js(middleware як остання у стеку) — глобальна обробка помилок: повертає статус 500:
 app.use(errorHandler);
