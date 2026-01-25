@@ -4,7 +4,7 @@
 import {Router} from "express";
 import { getAllNotes, getNoteById, createNote, deleteNote, updateNote} from "../controllers/notesController.js";
 import {celebrate} from 'celebrate';
-import {createNotesSchema, getAllNotesSchema, noteIdSchema, updateNoteSchema} from '../validations/notesValidation.js';
+import {createNoteSchema, getAllNotesSchema, noteIdSchema, updateNoteSchema} from '../validations/notesValidation.js';
 const router = Router();
 
 //Опис роута GET /notes, який буде повертати масив усіх нотаток:
@@ -15,7 +15,7 @@ router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
 router.get('/notes/:noteId',celebrate(noteIdSchema), getNoteById);
 
 //Опис роута POST /notes для створення нової нотатки:
-router.post('/notes', celebrate(createNotesSchema), createNote);
+router.post('/notes', celebrate(createNoteSchema), createNote);
 
 //Опис роута DELETE /notes/:noteId для видалення існуючої нотатки за її ідентифікатором:
 router.delete('/notes/:noteId',celebrate(noteIdSchema), deleteNote );

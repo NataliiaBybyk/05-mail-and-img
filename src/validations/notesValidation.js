@@ -34,7 +34,7 @@ export const noteIdSchema={
 //title - рядок, мінімум 1 символ, обов’язкове поле
 //content - рядок, може бути порожнім рядком, необов’язкове поле
 //tag - одне зі значень із файла src/contacts/tags.js, необов’язкове поле
-export const createNotesSchema={
+export const createNoteSchema={
   [Segments.BODY]:Joi.object({
 title: Joi.string().min(1).required(),
 content: Joi.string().allow(''),
