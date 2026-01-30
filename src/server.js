@@ -9,6 +9,8 @@ import {connectMongoDB} from './db/connectMongoDB.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import notesRoutes from './routes/notesRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import cookieParser from "cookie-parser";
 
 
 const app=express();
@@ -21,11 +23,16 @@ app.use(express.json({limit: "10mb"}));
 
 app.use(helmet());
 
+app.use(cookieParser());
+
 // Middleware дозволяє робити запити з інших доменів;
 app.use(cors());
 
 //Middleware — логування HTTP-запитів за допомогою pino-http:
 app.use(loggerPino);
+
+//Реєстрація користувача
+app.use(authRoutes);
 
 //Реєстрація загального роута для роботи з колекцією нотаток  після службових Middleware(express, cors, loggerPino) і  перед Middleware notFoundHandler :
 app.use(notesRoutes);

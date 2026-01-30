@@ -5,7 +5,11 @@ import {Router} from "express";
 import { getAllNotes, getNoteById, createNote, deleteNote, updateNote} from "../controllers/notesController.js";
 import {celebrate} from 'celebrate';
 import {createNoteSchema, getAllNotesSchema, noteIdSchema, updateNoteSchema} from '../validations/notesValidation.js';
+import {authenticate} from "../middleware/authenticate.js";
+
 const router = Router();
+
+router.use('/notes', authenticate);
 
 //Опис роута GET /notes, який буде повертати масив усіх нотаток:
 router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
