@@ -54,7 +54,7 @@ res.status(200).json(user);
 
 
 // ✅СТВОРЮЄМО КОНТРОЛЕР  logoutUser:
-export const logoutUser=async (req, res)=>{
+export const logoutUser=async (req, res, next)=>{
 const {sessionId}=req.cookies;
 console.log(req.cookies);
 //1.logoutUser, який перевіряє, чи є у cookies sessionId
@@ -64,9 +64,9 @@ if(sessionId){
   res.clearCookie('sessionId');
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
-  //3.повертає відповідь зі статусом 204 (без тіла)
-  res.status(204).send();
 };
+ //3.повертає відповідь зі статусом 204 (без тіла)
+  res.status(204).send();
 };
 
 
