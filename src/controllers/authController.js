@@ -54,19 +54,19 @@ res.status(200).json(user);
 
 
 // ✅СТВОРЮЄМО КОНТРОЛЕР  logoutUser:
-export const logoutUser=async (req, res)=>{
+export const logoutUser=async (req, res, next)=>{
 const {sessionId}=req.cookies;
 console.log(req.cookies);
 //1.logoutUser, який перевіряє, чи є у cookies sessionId
 if(sessionId){
   await Session.deleteOne({_id:sessionId});
-  //2.очищає cookies sessionId, accessToken та refreshToken за допомогою res.clearCookie
+};
+//2.очищає cookies sessionId, accessToken та refreshToken за допомогою res.clearCookie
   res.clearCookie('sessionId');
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
-  //3.повертає відповідь зі статусом 204 (без тіла)
+ //3.повертає відповідь зі статусом 204 (без тіла)
   res.status(204).send();
-};
 };
 
 
@@ -101,6 +101,6 @@ const newSession=await createSession(session.userId);
 setSessionCookies(res, newSession);
 //6.Y разі вдалої обробки запиту повертає відповідь зі статусом 200 і об’єктом:{"message": "Session refreshed"}:
 res.status(200).json({
-  message:'Sessionrefreshed'
+  message:'Session refreshed'
 });
 };
