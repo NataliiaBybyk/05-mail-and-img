@@ -1,7 +1,7 @@
 import pino from 'pino-http';
 
 //Middleware — логування HTTP-запитів за допомогою pino-http:
-export const loggerPino = (pino({
+export const loggerPino = pino({
   level: 'info',
   transport: {
     target: 'pino-pretty',
@@ -13,5 +13,5 @@ export const loggerPino = (pino({
         hideObject: true,
     },
   },
-}));
+});
 

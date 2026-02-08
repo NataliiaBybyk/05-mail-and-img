@@ -11,6 +11,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import notesRoutes from './routes/notesRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import cookieParser from "cookie-parser";
+import userRoutes from './routes/userRoutes.js';
 
 
 const app=express();
@@ -36,6 +37,9 @@ app.use(authRoutes);
 
 //Реєстрація загального роута для роботи з колекцією нотаток  після службових Middleware(express, cors, loggerPino) і  перед Middleware notFoundHandler :
 app.use(notesRoutes);
+
+//Реєстрацію загального роута користувача для завантаження зображення користувача
+app.use(userRoutes);
 
 
 //Middleware 404 notFoundHandler(додана після всіх маршрутів) для обробки всіх запитів, що не відповідають жодному наявному маршруту:повертає статус 400:
