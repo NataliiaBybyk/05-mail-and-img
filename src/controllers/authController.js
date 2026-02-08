@@ -3,6 +3,11 @@ import { User } from "../models/user.js";
 import bcrypt from "bcrypt";
 import {createSession, setSessionCookies} from "../services/auth.js";
 import { Session } from "../models/session.js";
+import jwt from 'jsonwebtoken';
+import { sendEmail } from "../utils/sendEmail.js";
+import handlebars from "handlebars";
+import path from 'node:path';
+import fs from 'node:fs/promises';
 
 //✅СТВОРЮЄМО КОНТРОЛЕР registerUser
 export const registerUser=async (req, res, next)=>{
@@ -104,3 +109,88 @@ res.status(200).json({
   message:'Session refreshed'
 });
 };
+
+//✅СТВОРЮЄМО КОНТРОЛЕР СКИДАННЯ ПАРОЛЮ через email requestResetEmail
+export const requestResetEmail=async (req, res, next)=>{
+const {email}=req.body;
+console.log(req.body);
+//1.Знайдіть користувача за переданим email:
+const user=await User.findOne({email});
+//2. Якщо користувача нема -навмисно повертаємо ту саму успішну відповідь без відправлення листа (anti user enumeration):
+if(!user){
+  return res.status(200).json({message: 'If this email exists, a reset link has been sent',});
+}
+//3. Користувач є -генеруємо короткоживучий JWT і відправляємо лист
+const resetToken=jwt.sign(
+  {sub:user._id, email},
+  process.env.JWT_SECRET,
+  {expiresIn:'15m'},//Термін дії токена — 15 хвилин. Цього достатньо, щоб перейти за лінком, і це знижує ризики компрометації.
+);
+console.log(resetToken);
+//4.Формуємо шлях до шаблона
+const templatePath=path.resolve('src/templates/reset-password-email.html');
+//5.Читаємо шаблон
+const templateSource=await fs.readFile(templatePath, 'utf-8');
+//6.Готуємо шаблон до заповнення
+const template=handlebars.compile(templateSource);
+//4.Формуємо із шаблона HTML документ з динамічними даними
+const html=template({
+  name:user.username,
+  link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`,
+});
+
+//Обгортання sendEmail у try/catch дає коректну відповідь 500 у випадку збою поштового сервісу.
+try{
+  await sendEmail({
+    from:process.env.SMTP_FROM,
+    to:email,
+    subject:'Reset your password',
+    html,
+  });
+}catch{
+  next(createHttpError(500, 'Failed to send the email, please try again later.'));
+  return;
+}
+//4.Якщо користувача не знайдено, то поверніть відповідь зі сатусом 200 і повідомленням:
+res.status(200).json({ message: 'Password reset email sent successfully'});
+};
+
+
+//✅СТВОРЮЄМО КОНТРОЛЕР СКИДАННЯ ПАРОЛЮ перевіряє токен, знаходить користувача, хешує новий пароль і оновлює запис.
+export const resetPassword=async(req, res, next)=>{
+  const {token, password}=req.body;
+  //1. Перевіряємо/декодуємо токен
+  let payload;
+  try{
+//Перевірка токена. jwt.verify() гарантує дійсність і непідробність токена, а також перевіряє строк дії (expiresIn).
+    payload=jwt.verify(token, process.env.JWT_SECRET);
+  }catch{
+    //Якщо токен невалідний або прострочений, використовуючи бібліотеку createHttpError, поверніть відповідь зі статусом 401 і повідомленням 'Invalid or expired token'.
+next(createHttpError(401, 'Invalid or expired token'));
+return;
+  }
+  //2. Знайдіть користувача за sub та email, які містяться в токені.
+  const user=await User.findOne({_id:payload.sub, email:payload.email});
+  //Якщо користувача не знайдено, використовуючи бібліотеку createHttpError, поверніть відповідь зі статусом 404 і повідомленням 'User not found':
+  if(!user){
+    next(createHttpError(404, 'User not found'));
+    return;
+  }
+  // 3. Якщо користувач існує
+  //створюємо новий пароль, зашифруйте новий пароль за допомогою бібліотеки bcrypt:
+  const hashedPassword=await bcrypt.hash(password, 10);
+  //  і оновлюємо користувача  в базі даних
+  await User.updateOne(
+    {_id:user._id},
+    {password:hashedPassword}
+  );
+
+  //4. Видаляємо всі сесії які можуть існувати для цього користувача.
+  await Session .deleteMany({userId:user._id});
+
+  //5. Повертаємо успішну відповідь
+  res.status(200).json({
+    message: 'Password reset successfully',
+  });
+};
+
