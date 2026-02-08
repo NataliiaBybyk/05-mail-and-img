@@ -22,16 +22,15 @@ export const upload=multer({
 //file - інформація про файл (назва, MIME-тип, розмір тощо);
 //cb - callback, який повідомляє multer, що робити з файлом.
   fileFilter:(req, file, cb)=>{
-    const allowedTypes=['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 //Варіанти виклику cb:
 //cb(null, true) - файл дозволено (приймаємо);
 //cb(null, false) - файл відхилено без помилки;
 //cb(new Error('...')) - файл відхилено з помилкою, обробка переривається.
-    if(allowedTypes.includes(file.mimetype)){
+    if(file.mimetype.startsWith('image/')){
       cb(null, true);
     }else{
-      cb(new Error('Only images allowed'), false);
+      cb(new Error('Only images allowed'));
     };
   },
 });
